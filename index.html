@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloud Simulator</title>
+    <link rel="preload" href="/fonts/bonheur-royale-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- Critical loader CSS: inlined so it applies on first paint, before the JS bundle (and src/style.css) loads -->
+    <style>
+      @font-face {
+        font-family: 'Bonheur Royale';
+        font-style: normal;
+        font-weight: 400;
+        font-display: block;
+        src: url('/fonts/bonheur-royale-latin.woff2') format('woff2');
+      }
+
+      html,
+      body {
+        margin: 0;
+      }
+
+      #loader {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        background: #fff;
+        color: #000;
+        font: 400 44px/1.3 'Bonheur Royale', cursive;
+        text-align: center;
+        opacity: 1;
+        transition: opacity 1.2s ease;
+      }
+
+      #loader p {
+        margin: 0;
+        padding: 0 24px;
+      }
+
+      .loader-line {
+        display: block;
+      }
+
+      /* the page starts plain white; spinner and text fade in once the font is ready */
+      /* animation (not transition) so it also plays when the font is cached and ready before the first paint */
+      .loader-spinner,
+      .loader-line {
+        opacity: 0;
+      }
+
+      #loader.fonts-ready .loader-spinner {
+        animation:
+          loader-fade-in 1.2s ease 0.3s both,
+          loader-spin 1s linear infinite;
+      }
+
+      #loader.fonts-ready .loader-line--from-left {
+        animation: loader-slide-from-left 1.2s ease-out 0.3s both;
+      }
+
+      #loader.fonts-ready .loader-line--from-right {
+        animation: loader-slide-from-right 1.2s ease-out 0.3s both;
+      }
+
+      /* exit: each line keeps moving in the same direction it entered with while fading out */
+      #loader.hidden .loader-line--from-left {
+        animation: loader-exit-to-right 0.8s ease-in both;
+      }
+
+      #loader.hidden .loader-line--from-right {
+        animation: loader-exit-to-left 0.8s ease-in both;
+      }
+
+      @keyframes loader-exit-to-left {
+        from {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+      }
+
+      @keyframes loader-exit-to-right {
+        from {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(10px);
+        }
+      }
+
+      @keyframes loader-fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes loader-slide-from-left {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes loader-slide-from-right {
+        from {
+          opacity: 0;
+          transform: translateX(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      /* the white background starts fading slightly later, so the text exit stays visible */
+      #loader.hidden {
+        opacity: 0;
+        pointer-events: none;
+        transition-delay: 0.4s;
+      }
+
+      .loader-spinner {
+        width: 48px;
+        height: 48px;
+        border: 3px solid rgba(0, 0, 0, 0.15);
+        border-top-color: #000;
+        border-radius: 50%;
+        animation: loader-spin 1s linear infinite;
+      }
+
+      @keyframes loader-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="loader" role="status" aria-live="polite">
+      <div class="loader-spinner"></div>
+      <p>
+        <span class="loader-line loader-line--from-left">Rendering the details...</span>
+        <span class="loader-line loader-line--from-right">Your cloud is taking shape</span>
+      </p>
+    </div>
+    <script>
+      // show the loader text only once the webfont is ready, without waiting for the JS bundle
+      document.fonts
+        .load("44px 'Bonheur Royale'")
+        .finally(() => document.getElementById('loader')?.classList.add('fonts-ready'));
+    </script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
