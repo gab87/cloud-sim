@@ -68,13 +68,15 @@
         animation: loader-slide-from-right 1.2s ease-out 0.3s both;
       }
 
-      /* exit: each line keeps moving in the same direction it entered with while fading out */
+      /* exit: each line keeps moving in the same direction it entered with, with the same timing
+         as the loader fade-out (#loader transition). The fade itself comes from the whole loader:
+         fading the text too would multiply the two opacities and make it vanish earlier. */
       #loader.hidden .loader-line--from-left {
-        animation: loader-exit-to-right 0.8s ease-in both;
+        animation: loader-exit-to-right 1.2s ease both;
       }
 
       #loader.hidden .loader-line--from-right {
-        animation: loader-exit-to-left 0.8s ease-in both;
+        animation: loader-exit-to-left 1.2s ease both;
       }
 
       @keyframes loader-exit-to-left {
@@ -83,7 +85,7 @@
           transform: translateX(0);
         }
         to {
-          opacity: 0;
+          opacity: 1;
           transform: translateX(-10px);
         }
       }
@@ -94,7 +96,7 @@
           transform: translateX(0);
         }
         to {
-          opacity: 0;
+          opacity: 1;
           transform: translateX(10px);
         }
       }
@@ -130,11 +132,9 @@
         }
       }
 
-      /* the white background starts fading slightly later, so the text exit stays visible */
       #loader.hidden {
         opacity: 0;
         pointer-events: none;
-        transition-delay: 0.4s;
       }
 
       .loader-spinner {
