@@ -48,13 +48,13 @@ export class Lightning {
   }
 
   trigger() {
-    const { position, scale } = this.cloud;
+    const { position, size } = this.cloud;
     const pos = this.cloud.uniforms.uLightningPos.value;
     // keep flashes in the core / lower part of the cloud, where it is densest
     pos.set(
-      position.x + MathUtils.randFloatSpread(scale.x * 0.5),
-      position.y + MathUtils.randFloat(-0.35, 0.1) * scale.y,
-      position.z + MathUtils.randFloatSpread(scale.z * 0.5),
+      position.x + MathUtils.randFloatSpread(size.x * 0.5),
+      position.y + MathUtils.randFloat(-0.35, 0.1) * size.y,
+      position.z + MathUtils.randFloatSpread(size.z * 0.5),
     );
 
     const d = this.settings.duration;

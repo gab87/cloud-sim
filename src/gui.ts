@@ -45,9 +45,9 @@ export function createGui(deps: GuiDeps) {
   box.add(cloud.position, 'x', -1000, 1000, 1).name('pos x');
   box.add(cloud.position, 'y', 20, 1000, 1).name('pos y');
   box.add(cloud.position, 'z', -1000, 1000, 1).name('pos z');
-  box.add(cloud.scale, 'x', 10, 1500, 1).name('size x');
-  box.add(cloud.scale, 'y', 10, 800, 1).name('size y');
-  box.add(cloud.scale, 'z', 10, 1500, 1).name('size z');
+  box.add(cloud.size, 'x', 10, 1500, 1).name('size x');
+  box.add(cloud.size, 'y', 10, 800, 1).name('size y');
+  box.add(cloud.size, 'z', 10, 1500, 1).name('size z');
 
   const light = gui.addFolder('Cloud lighting');
   light.addColor(u.uCloudColor, 'value').name('albedo');

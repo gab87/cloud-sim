@@ -12,6 +12,9 @@ layout(location = 0) out highp vec4 pc_fragColor;
 uniform sampler3D uNoise;
 uniform vec3 uBoxMin;
 uniform vec3 uBoxMax;
+// cloud envelope (shape bounds); uBoxMin/uBoxMax are the padded raymarching bounds
+uniform vec3 uEnvMin;
+uniform vec3 uEnvMax;
 uniform float uGroundHeight;
 uniform float uTime;
 
@@ -129,8 +132,8 @@ vec3 flowField(vec3 p) {
 float sampleDensity(vec3 p, bool detail) {
   vec3 flow = uFlowStrength > 0.0 ? flowField(p) * uFlowStrength : vec3(0.0);
 
-  vec3 size = uBoxMax - uBoxMin;
-  vec3 uvw = (p + flow * uFlowEnvelope - uBoxMin) / size;
+  vec3 size = uEnvMax - uEnvMin;
+  vec3 uvw = (p + flow * uFlowEnvelope - uEnvMin) / size;
   float mask = shapeMask(uvw);
   if (mask <= 0.0) return 0.0;
 
@@ -155,7 +158,8 @@ float sampleDensity(vec3 p, bool detail) {
 
 float lightMarch(vec3 p) {
   vec2 t = boxHit(p, uSunDir);
-  float len = max(t.y, 0.0);
+  // no density can lie farther than the envelope diagonal: keeps the light steps fine-grained
+  float len = clamp(t.y, 0.0, length(uEnvMax - uEnvMin));
   float stepSize = len / float(uLightSteps);
   float od = 0.0;
   for (int i = 0; i < MAX_LIGHT_STEPS; i++) {
@@ -186,8 +190,10 @@ void main() {
   t.x = max(t.x, 0.0);
   if (t.x >= t.y) discard;
 
-  vec3 size = uBoxMax - uBoxMin;
-  float stepSize = length(size) / float(uSteps);
+  // Step size is tied to the cloud envelope (not the padded box), so enlarging the bounds
+  // doesn't make the sampling coarser; it only grows when needed to cross the ray in MAX_STEPS.
+  vec3 size = uEnvMax - uEnvMin;
+  float stepSize = max(length(size) / float(uSteps), (t.y - t.x) / float(MAX_STEPS));
   float jitter = hash12(gl_FragCoord.xy + fract(uTime * 17.0) * 113.0) * uJitter;
   float tt = t.x + stepSize * jitter;
 
@@ -198,14 +204,14 @@ void main() {
   vec3 L = vec3(0.0);
 
   for (int i = 0; i < MAX_STEPS; i++) {
-    if (i >= uSteps || tt > t.y) break;
+    if (tt > t.y) break;
     vec3 p = ro + rd * tt;
     float d = sampleDensity(p, true);
     if (d > 0.0005) {
       float od = lightMarch(p) * uLightAbsorption;
       float beer = max(exp(-od), exp(-od * 0.25) * uMultiScatter);
       float powder = mix(1.0, 1.0 - exp(-d * 4.0), uPowder);
-      float h = clamp((p.y - uBoxMin.y) / size.y, 0.0, 1.0);
+      float h = clamp((p.y - uEnvMin.y) / size.y, 0.0, 1.0);
       vec3 ambient = mix(uAmbientBottom, uAmbientTop, h) * uAmbientIntensity;
       vec3 light = uSunColor * uSunIntensity * beer * phase * powder + ambient;
 

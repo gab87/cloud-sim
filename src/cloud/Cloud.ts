@@ -17,6 +17,8 @@ export function createCloudUniforms() {
     uNoise: { value: null as Data3DTexture | null },
     uBoxMin: { value: new Vector3() },
     uBoxMax: { value: new Vector3() },
+    uEnvMin: { value: new Vector3() },
+    uEnvMax: { value: new Vector3() },
     uGroundHeight: { value: 0 },
     uTime: { value: 0 },
 
@@ -71,6 +73,11 @@ export class Cloud extends Mesh<BoxGeometry, ShaderMaterial> {
   readonly uniforms: CloudUniforms;
   /** Resolves when the first noise texture is ready and the cloud becomes visible. */
   readonly ready: Promise<void>;
+  /**
+   * Size of the cloud envelope (what the user tunes). The mesh scale — i.e. the raymarching
+   * bounds — is derived from it in update(), padded so the cloud is never clipped by the box.
+   */
+  readonly size = new Vector3();
 
   constructor() {
     const uniforms = createCloudUniforms();
@@ -91,7 +98,7 @@ export class Cloud extends Mesh<BoxGeometry, ShaderMaterial> {
     );
     this.uniforms = uniforms;
     this.position.set(0, 230, 0);
-    this.scale.set(480, 240, 340);
+    this.size.set(480, 240, 340);
     this.visible = false;
     this.ready = this.loadNoise();
   }
@@ -118,8 +125,21 @@ export class Cloud extends Mesh<BoxGeometry, ShaderMaterial> {
     const u = this.uniforms;
     u.uTime.value = time;
     u.uSunDir.value.copy(sunDir);
-    const half = this.scale.clone().multiplyScalar(0.5);
-    u.uBoxMin.value.copy(this.position).sub(half);
-    u.uBoxMax.value.copy(this.position).add(half);
+
+    const half = this.size.clone().multiplyScalar(0.5);
+    u.uEnvMin.value.copy(this.position).sub(half);
+    u.uEnvMax.value.copy(this.position).add(half);
+
+    // Raymarching bounds = envelope + everything that can push density outside of it:
+    // - the envelope is an ellipsoid stretched vertically by 1/topRoundness (top) and
+    //   1/bottomFlatness (bottom), so it can exceed the nominal height
+    // - the flow field displaces the envelope by up to |v| * flowStrength * envelopeWarp;
+    //   each component of the curl field is <= ~0.99, so |v| <= sqrt(3) * 0.99 < 1.75
+    // plus a small safety margin for the soft edge.
+    const margin = 1.75 * Math.abs(u.uFlowStrength.value * u.uFlowEnvelope.value) + 0.05 * this.size.length();
+    const yExtent = half.y / Math.min(u.uTopRoundness.value, u.uBottomFlatness.value, 1);
+    this.scale.set(2 * (half.x + margin), 2 * (yExtent + margin), 2 * (half.z + margin));
+    u.uBoxMin.value.copy(this.position).addScaledVector(this.scale, -0.5);
+    u.uBoxMax.value.copy(this.position).addScaledVector(this.scale, 0.5);
   }
 }

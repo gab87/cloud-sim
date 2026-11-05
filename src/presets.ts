@@ -17,7 +17,7 @@ const NON_PRESET_UNIFORMS = new Set<keyof CloudUniforms>([
 export interface Preset {
   /** cloud uniforms: numbers, or [r,g,b] / [x,y,z] (linear) for colors and vectors */
   cloud?: Partial<Record<keyof CloudUniforms, number | Vec3>>;
-  volume?: { position?: Vec3; scale?: Vec3 };
+  volume?: { position?: Vec3; size?: Vec3 };
   sun?: { elevation?: number; azimuth?: number; autoSunColor?: boolean };
   sky?: { turbidity?: number; rayleigh?: number; mieCoefficient?: number; mieDirectionalG?: number; cloudCoverage?: number };
   ocean?: { distortionScale?: number; size?: number; waterColor?: number };
@@ -27,7 +27,7 @@ export interface Preset {
 
 /** Values every preset starts from (the app's initial state), so switching presets is deterministic. */
 const BASE = {
-  volume: { position: [0, 230, 0] as Vec3, scale: [480, 240, 340] as Vec3 },
+  volume: { position: [0, 230, 0] as Vec3, size: [480, 240, 340] as Vec3 },
   sun: { elevation: 18, azimuth: 55, autoSunColor: true },
   sky: { turbidity: 4, rayleigh: 1.5, mieCoefficient: 0.005, mieDirectionalG: 0.8, cloudCoverage: 0 },
   ocean: { distortionScale: 3.7, size: 1, waterColor: 0x001e0f },
@@ -63,7 +63,7 @@ export const PRESETS = {
       uPowder: 0.7,
       uMultiScatter: 0.35,
     },
-    volume: { position: [0, 300, 0], scale: [800, 420, 560] },
+    volume: { position: [0, 300, 0], size: [800, 420, 560] },
     sun: { elevation: 6, azimuth: 120 },
     sky: { turbidity: 14, rayleigh: 3.5, mieCoefficient: 0.03, mieDirectionalG: 0.7 },
     ocean: { distortionScale: 7, size: 2, waterColor: 0x04121a },
@@ -144,7 +144,7 @@ export function applyPreset(name: PresetName, t: PresetTargets) {
 
   const volume = { ...BASE.volume, ...p.volume };
   t.cloud.position.fromArray(volume.position);
-  t.cloud.scale.fromArray(volume.scale);
+  t.cloud.size.fromArray(volume.size);
 
   const sky = { ...BASE.sky, ...p.sky };
   const skyU = t.sky.material.uniforms;
