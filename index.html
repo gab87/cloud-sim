@@ -162,6 +162,37 @@
         <span class="loader-line loader-line--from-right">Your cloud is taking shape</span>
       </p>
     </div>
+    <button id="capture-btn" type="button">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path
+          fill="currentColor"
+          d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9Zm3 4.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"
+        />
+      </svg>
+      Capture your cloud
+    </button>
+
+    <dialog id="name-dialog" class="modal">
+      <form method="dialog">
+        <h2>What's your name?</h2>
+        <input id="name-input" name="name" type="text" maxlength="40" required autocomplete="given-name" autofocus />
+        <div class="modal-actions">
+          <button type="submit" value="cancel" formnovalidate class="btn-secondary">Cancel</button>
+          <button type="submit" value="ok" class="btn-primary">OK</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="preview-dialog" class="modal modal-preview">
+      <div id="preview-frame" class="polaroid-frame">
+        <img id="preview-img" alt="Your cloud polaroid" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="preview-close" class="btn-secondary">Close</button>
+        <a id="preview-download" class="btn-primary">Download</a>
+      </div>
+    </dialog>
+
     <script>
       // show the loader text only once the webfont is ready, without waiting for the JS bundle
       document.fonts

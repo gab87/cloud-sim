@@ -12,3 +12,165 @@ body {
   width: 100%;
   height: 100%;
 }
+
+#capture-btn,
+.modal button,
+.modal a {
+  font: 500 15px/1 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+#capture-btn {
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+#capture-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+}
+
+#capture-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.modal {
+  border: 0;
+  border-radius: 16px;
+  padding: 28px;
+  background: #fff;
+  color: #000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.modal h2 {
+  margin: 0 0 18px;
+  font: 400 40px/1.1 'Bonheur Royale', cursive;
+  text-align: center;
+}
+
+.modal input {
+  box-sizing: border-box;
+  width: 320px;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 10px;
+  font: 400 16px/1.2 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  outline: none;
+}
+
+.modal input:focus {
+  border-color: #000;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 10px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-primary {
+  border: 1px solid #000;
+  background: #000;
+  color: #fff;
+}
+
+.btn-secondary {
+  border: 1px solid #d0d0d0;
+  background: #fff;
+  color: #000;
+}
+
+.modal-preview {
+  padding: 20px;
+}
+
+.modal-preview[open] {
+  animation: modal-pop-in 0.45s ease-out;
+}
+
+/* the backdrop is the camera flash: it starts white and settles into a dark, blurred overlay */
+.modal-preview::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  animation: camera-flash 0.7s ease-out;
+}
+
+@keyframes camera-flash {
+  0% {
+    background: rgba(255, 255, 255, 0);
+  }
+  10% {
+    background: rgba(255, 255, 255, 1);
+  }
+  100% {
+    background: rgba(0, 0, 0, 0.72);
+  }
+}
+
+@keyframes modal-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-preview[open],
+  .modal-preview::backdrop {
+    animation: none;
+  }
+}
+
+/* empty white polaroid shown while the photo is being taken; sized via inline aspect-ratio */
+.polaroid-frame {
+  width: min(86vw, 1100px, calc(72vh * var(--polaroid-ratio, 1.65)));
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.polaroid-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.modal-preview.is-pending #preview-download {
+  opacity: 0.4;
+  pointer-events: none;
+}
+

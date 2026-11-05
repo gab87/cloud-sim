@@ -15,6 +15,7 @@ import { Lightning } from './cloud/Lightning';
 import { createGui, type SimParams } from './gui';
 import { createOcean } from './scene/ocean';
 import { createSky, sunDirectionFrom } from './scene/sky';
+import { setupSnapshotUI } from './snapshot';
 
 const container = document.querySelector<HTMLDivElement>('#app')!;
 
@@ -77,6 +78,8 @@ createGui({
   onSunChange: updateSun,
   onPixelRatioChange: () => renderer.setPixelRatio(params.pixelRatio),
 });
+
+setupSnapshotUI({ renderer, scene, camera });
 
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
