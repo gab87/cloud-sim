@@ -1,4 +1,5 @@
 import type { Camera, Scene, WebGLRenderer } from 'three';
+import { isNameAllowed } from './bannedNames';
 
 const FONT_FAMILY = "'Bonheur Royale', cursive";
 
@@ -90,27 +91,42 @@ export function setupSnapshotUI(deps: SnapshotDeps) {
   const download = document.querySelector<HTMLAnchorElement>('#preview-download')!;
   const close = document.querySelector<HTMLButtonElement>('#preview-close')!;
   const frame = document.querySelector<HTMLDivElement>('#preview-frame')!;
+  const copy = document.querySelector<HTMLButtonElement>('#preview-copy')!;
+  const nameError = document.querySelector<HTMLParagraphElement>('#name-error')!;
   let url: string | null = null;
+  let blob: Blob | null = null;
   let frozen: HTMLCanvasElement | null = null;
+
+  // copying images needs the async Clipboard API (secure context: https or localhost)
+  copy.hidden = !('ClipboardItem' in window && navigator.clipboard?.write);
 
   button.addEventListener('click', () => {
     // the photo is the frame visible at the moment of the click, not after typing the name
     frozen = grabFrame(deps);
     nameDialog.returnValue = '';
+    validateName();
     nameDialog.showModal();
     nameInput.select();
   });
 
-  // trimmed name must not be empty
-  nameInput.addEventListener('input', () =>
-    nameInput.setCustomValidity(nameInput.value.trim() ? '' : 'Please enter your name'),
-  );
+  /** trimmed name must not be empty nor contain offensive words (see bannedNames.ts) */
+  function validateName() {
+    const name = nameInput.value.trim();
+    const banned = name !== '' && !isNameAllowed(name);
+    const message = banned ? "This name isn't allowed. Please choose another one." : name ? '' : 'Please enter your name';
+    nameInput.setCustomValidity(message);
+    nameInput.setAttribute('aria-invalid', String(banned));
+    nameError.textContent = banned ? message : '';
+    nameError.hidden = !banned;
+  }
+  nameInput.addEventListener('input', validateName);
+  document.querySelector('#name-cancel')!.addEventListener('click', () => nameDialog.close('cancel'));
 
   nameDialog.addEventListener('close', async () => {
     const name = nameInput.value.trim();
     const photo = frozen;
     frozen = null;
-    if (nameDialog.returnValue !== 'ok' || !name || !photo) return;
+    if (nameDialog.returnValue !== 'ok' || !name || !isNameAllowed(name) || !photo) return;
     button.disabled = true;
     try {
       // 1) open the preview right away with an empty polaroid of the final size; opening the
@@ -123,7 +139,7 @@ export function setupSnapshotUI(deps: SnapshotDeps) {
       previewDialog.showModal();
 
       // 2) compose the frame frozen at click time with the caption
-      const blob = await composePolaroid(photo, name);
+      blob = await composePolaroid(photo, name);
       if (!previewDialog.open) return;
 
       // 3) instant film "developing": the photo fades in inside the white frame
@@ -143,10 +159,26 @@ export function setupSnapshotUI(deps: SnapshotDeps) {
     }
   });
 
+  let copyReset = 0;
+  copy.addEventListener('click', async () => {
+    if (!blob) return;
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      copy.textContent = 'Copied!';
+    } catch {
+      copy.textContent = 'Copy failed';
+    }
+    clearTimeout(copyReset);
+    copyReset = window.setTimeout(() => (copy.textContent = 'Copy'), 2000);
+  });
+
   close.addEventListener('click', () => previewDialog.close());
   previewDialog.addEventListener('close', () => {
     if (url) URL.revokeObjectURL(url);
     url = null;
+    blob = null;
+    clearTimeout(copyReset);
+    copy.textContent = 'Copy';
     previewImg.removeAttribute('src');
     previewImg.getAnimations().forEach((a) => a.cancel());
     download.removeAttribute('href');

@@ -175,9 +175,20 @@
     <dialog id="name-dialog" class="modal">
       <form method="dialog">
         <h2>What's your name?</h2>
-        <input id="name-input" name="name" type="text" maxlength="40" required autocomplete="given-name" autofocus />
+        <input
+          id="name-input"
+          name="name"
+          type="text"
+          maxlength="40"
+          required
+          autocomplete="given-name"
+          autofocus
+          aria-describedby="name-error"
+        />
+        <p id="name-error" class="modal-error" role="alert" hidden></p>
         <div class="modal-actions">
-          <button type="submit" value="cancel" formnovalidate class="btn-secondary">Cancel</button>
+          <!-- type="button": Enter must trigger OK, the form's only submit button -->
+          <button type="button" id="name-cancel" class="btn-secondary">Cancel</button>
           <button type="submit" value="ok" class="btn-primary">OK</button>
         </div>
       </form>
@@ -189,6 +200,7 @@
       </div>
       <div class="modal-actions">
         <button type="button" id="preview-close" class="btn-secondary">Close</button>
+        <button type="button" id="preview-copy" class="btn-secondary" hidden>Copy</button>
         <a id="preview-download" class="btn-primary">Download</a>
       </div>
     </dialog>
